@@ -1,11 +1,30 @@
-# React + Vite
+# Qwill
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Qwill is an open-source word processor built with React and Vite. It is a React-based content management system (CMS) designed to be simple, fast, and easy to use. It provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Simple and intuitive interface
+- Fast and responsive design
+- Easy to use and navigate
+- Customizable and extensible
+- Open-source and free to use
+
+## Installation
+
+```bash
+npm install
+```
+
+## Usage
+
+```bash
+npm run dev
+```
+
+## License
+
+Qwill is licensed under the MIT License.
 
 ## React Compiler
 
