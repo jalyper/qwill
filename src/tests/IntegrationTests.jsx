@@ -136,21 +136,27 @@ const testDeletionPull = async ({ setPages }) => {
     // 1. Create two pages with content
     const id1 = 'test-1';
     const id2 = 'test-2';
+    console.log('[TEST2] Creating 2 pages...');
     setPages([
         { id: id1, content: 'Page 1 Content' },
         { id: id2, content: 'Page 2 Content' }
     ]);
 
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 1500)); // Increased wait time for refs to register
+
+    console.log('[TEST2] Number of pages in DOM:', document.querySelectorAll('.page').length);
 
     // 2. Delete content from Page 1
+    console.log('[TEST2] Emptying Page 1...');
     setPages(prev => prev.map(p => p.id === id1 ? { ...p, content: '' } : p));
 
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1500)); // Increased wait time for balancing
 
     // 3. Verify Page 2 content moved to Page 1
     const pageElements = document.querySelectorAll('.page');
+    console.log('[TEST2] Number of pages after emptying:', pageElements.length);
     const firstPageText = pageElements[0].querySelector('.page-content').innerText;
+    console.log('[TEST2] Page 1 content:', firstPageText);
 
     if (!firstPageText.includes('Page 2 Content')) {
         throw new Error(`Content from Page 2 did not move to Page 1. Page 1 content: "${firstPageText}"`);

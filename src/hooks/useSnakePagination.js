@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import { useState, useLayoutEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 export const useSnakePagination = (initialPages) => {
@@ -10,40 +10,39 @@ export const useSnakePagination = (initialPages) => {
     }, []);
 
     const balancePages = useCallback(() => {
-        // console.warn('Running balancePages', pages.length);
-        let newPages = pages.map(p => ({ ...p })); // Deep clone for safety
+        console.warn('[balancePages] Running, pages:', pages.length);
+
+        let newPages = pages.map(p => ({ ...p }));
         let hasChanges = false;
 
-        // Loop through pages
         for (let i = 0; i < newPages.length; i++) {
             const pageId = newPages[i].id;
             const pageEl = pageRefs[pageId];
 
+            console.warn(`[balancePages] Processing page ${i}, id: ${pageId}, has ref: ${!!pageEl}`);
+
             if (!pageEl) {
-                // console.warn(`Page ref missing for ${pageId}`);
+                console.warn(`[balancePages] Page ref missing for ${pageId}`);
                 continue;
             }
 
+            console.warn(`[balancePages] Page ${i} - scrollHeight: ${pageEl.scrollHeight}, clientHeight: ${pageEl.clientHeight}, content length: ${newPages[i].content.length}`);
+
             // Check Overflow
             while (pageEl.scrollHeight > pageEl.clientHeight + 1) {
-                // console.warn(`Overflow detected on page ${i}`);
                 const lastChild = pageEl.lastChild;
                 if (!lastChild) break;
 
                 let contentToMove = '';
 
-                // If text node, try to split it
                 if (lastChild.nodeType === Node.TEXT_NODE) {
                     const text = lastChild.textContent;
-                    // Binary search for split point
                     let min = 0;
                     let max = text.length;
                     let splitIndex = 0;
 
-                    // First check if removing the whole node solves it
                     pageEl.removeChild(lastChild);
                     if (pageEl.scrollHeight <= pageEl.clientHeight + 1) {
-                        // It fits without this node. Find how much we can put back.
                         while (min <= max) {
                             const mid = Math.floor((min + max) / 2);
                             if (mid === 0) {
@@ -64,24 +63,16 @@ export const useSnakePagination = (initialPages) => {
                         }
 
                         if (splitIndex > 0 && splitIndex < text.length) {
-                            // We found a split point
                             lastChild.textContent = text.substring(0, splitIndex);
                             pageEl.appendChild(lastChild);
                             contentToMove = text.substring(splitIndex);
                         } else {
-                            // Either fits entirely (shouldn't happen in this loop) or doesn't fit at all
                             contentToMove = text;
-                            // Don't append back if it doesn't fit at all
                         }
                     } else {
-                        // Even without this node, it overflows. 
-                        // This means previous nodes are causing overflow? 
-                        // Or we are in a loop removing multiple nodes.
-                        // We just move this whole node and continue loop.
                         contentToMove = text;
                     }
                 } else {
-                    // Element node
                     contentToMove = lastChild.outerHTML;
                     pageEl.removeChild(lastChild);
                 }
@@ -102,34 +93,31 @@ export const useSnakePagination = (initialPages) => {
                 const nextPageId = newPages[i + 1].id;
                 const nextPageEl = pageRefs[nextPageId];
 
+                console.warn(`[balancePages] Page ${i} - Checking underflow. Next page id: ${nextPageId}, has ref: ${!!nextPageEl}`);
+
                 if (nextPageEl) {
-                    // console.warn(`Checking underflow for page ${i}, next page has children: ${nextPageEl.childNodes.length}`);
+                    console.warn(`[balancePages] Page ${i} - Next page has ${nextPageEl.childNodes.length} child nodes`);
                     while (nextPageEl.firstChild) {
                         const firstChild = nextPageEl.firstChild;
                         const clone = firstChild.cloneNode(true);
 
                         pageEl.appendChild(clone);
 
-                        // console.warn(`Trying to pull node type ${firstChild.nodeType} to page ${i}. Fits? ${pageEl.scrollHeight <= pageEl.clientHeight + 1}`);
+                        const fits = pageEl.scrollHeight <= pageEl.clientHeight + 1;
+                        console.warn(`[balancePages] Page ${i} - Trying to pull node type ${firstChild.nodeType}. Fits? ${fits}`);
 
-                        if (pageEl.scrollHeight <= pageEl.clientHeight + 1) {
-                            const contentToMove = firstChild.nodeType === Node.ELEMENT_NODE ? firstChild.outerHTML : (firstChild.textContent ? firstChild.textContent : '');
-
+                        if (fits) {
                             newPages[i].content = pageEl.innerHTML;
                             nextPageEl.removeChild(firstChild);
                             newPages[i + 1].content = nextPageEl.innerHTML;
-
                             hasChanges = true;
                         } else {
-                            // Doesn't fit entirely.
-                            // If text node, try to split.
                             if (firstChild.nodeType === Node.TEXT_NODE) {
                                 const text = firstChild.textContent;
                                 let min = 0;
                                 let max = text.length;
                                 let splitIndex = 0;
 
-                                // Binary search for how much fits
                                 while (min <= max) {
                                     const mid = Math.floor((min + max) / 2);
                                     if (mid === 0) {
@@ -148,30 +136,22 @@ export const useSnakePagination = (initialPages) => {
                                 }
 
                                 if (splitIndex > 0) {
-                                    // We found a chunk that fits
                                     const textToMove = text.substring(0, splitIndex);
                                     const textToKeep = text.substring(splitIndex);
 
-                                    // Update current page
-                                    // We need to set the clone's text to what fits
                                     clone.textContent = textToMove;
                                     newPages[i].content = pageEl.innerHTML;
 
-                                    // Update next page
-                                    // We need to update the firstChild of next page to only have the remaining text
                                     firstChild.textContent = textToKeep;
                                     newPages[i + 1].content = nextPageEl.innerHTML;
 
                                     hasChanges = true;
-                                    // We stop pulling because we filled the page
                                     break;
                                 } else {
-                                    // Nothing fits
                                     pageEl.removeChild(clone);
                                     break;
                                 }
                             } else {
-                                // Element node that doesn't fit
                                 pageEl.removeChild(clone);
                                 break;
                             }
@@ -187,17 +167,20 @@ export const useSnakePagination = (initialPages) => {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
             if (tempDiv.textContent.trim() === '' && tempDiv.querySelectorAll('img').length === 0) {
+                console.warn(`[balancePages] Removing empty page ${i}`);
                 newPages.splice(i, 1);
                 hasChanges = true;
             }
         }
 
         if (hasChanges) {
+            console.warn('[balancePages] Setting new pages, count:', newPages.length);
             setPages(newPages);
+        } else {
+            console.warn('[balancePages] No changes needed');
         }
     }, [pages, pageRefs]);
 
-    // Run balancePages whenever pages or refs change
     useLayoutEffect(() => {
         balancePages();
     }, [pages, pageRefs, balancePages]);
