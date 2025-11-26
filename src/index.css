@@ -1,0 +1,122 @@
+:root {
+  --bg-color: #fcfcfc;
+  --text-color: #1a1a1a;
+  --accent-color: #3b82f6;
+  --toolbar-bg: rgba(255, 255, 255, 0.8);
+  --toolbar-border: rgba(0, 0, 0, 0.05);
+  --editor-bg: transparent;
+  --editor-shadow: none;
+  --editor-padding: 2rem;
+  --editor-width: 800px;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Merriweather', serif;
+  --font-mono: 'Fira Code', monospace;
+  --transition-speed: 0.3s;
+}
+
+body.dark-mode {
+  --bg-color: #111111;
+  --text-color: #e5e5e5;
+  --accent-color: #60a5fa;
+  --toolbar-bg: rgba(17, 17, 17, 0.8);
+  --toolbar-border: rgba(255, 255, 255, 0.05);
+}
+
+body.page-view {
+  --bg-color: #e5e7eb;
+  --editor-bg: #ffffff;
+  --editor-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --editor-padding: 0;
+  /* Padding is handled by .page-content */
+  --editor-width: auto;
+  /* Width is handled by .page */
+  --page-height: 1056px;
+  /* 11in at 96dpi */
+  --page-width: 816px;
+  /* 8.5in at 96dpi */
+  --page-gap: 20px;
+}
+
+.page {
+  width: var(--page-width);
+  height: var(--page-height);
+  background-color: var(--editor-bg);
+  box-shadow: var(--editor-shadow);
+  margin-bottom: var(--page-gap);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  padding: 96px;
+  /* 1 inch padding */
+  outline: none;
+  overflow: hidden;
+  /* Hide overflow until we move it */
+}
+
+.page-number {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+body.dark-mode.page-view {
+  --bg-color: #1f2937;
+  --editor-bg: #111111;
+  --editor-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .page {
+  background-color: var(--editor-bg);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  height: 100vh;
+  width: 100%;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
