@@ -1,6 +1,6 @@
 import React, { useRef, useLayoutEffect } from 'react';
 
-const Page = ({ id, content, onContentChange, registerPageRef, pageNumber, isFocused, onFocus }) => {
+const Page = ({ id, content, onContentChange, registerPageRef, pageNumber, isFocused, onFocus, font }) => {
     const contentRef = useRef(null);
     const pageRef = useRef(null);
 
@@ -47,6 +47,7 @@ const Page = ({ id, content, onContentChange, registerPageRef, pageNumber, isFoc
                 onInput={handleInput}
                 onFocus={() => onFocus(id)}
                 spellCheck={false}
+                style={{ fontFamily: font }}
             />
             <div className="page-number">{pageNumber}</div>
         </div>

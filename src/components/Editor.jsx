@@ -155,6 +155,7 @@ const Editor = () => {
                         id={page.id}
                         pageNumber={index + 1}
                         content={page.content}
+                        font={font}
                         onContentChange={updatePageContent}
                         registerPageRef={registerPageRef}
                         onFocus={setFocusedPageId}
