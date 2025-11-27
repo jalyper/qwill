@@ -17,8 +17,8 @@ export const htmlToDocx = async (htmlContent) => {
     // Process each child node recursively to generate TextRuns
     const processNode = (node, styles = {}) => {
         if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.textContent.trim();
-            if (text) {
+            const text = node.textContent;
+            if (text.length > 0) {
                 return new TextRun({
                     text: text,
                     bold: styles.bold,
@@ -52,8 +52,8 @@ export const htmlToDocx = async (htmlContent) => {
                 }
             } else {
                 // If it's an element without children but has text content (unlikely if we iterate children, but possible for some elements)
-                const text = node.textContent.trim();
-                if (text) {
+                const text = node.textContent;
+                if (text.length > 0) {
                     runs.push(new TextRun({
                         text,
                         bold: isBold,

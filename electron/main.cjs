@@ -149,3 +149,46 @@ ipcMain.handle('file:write', async (event, filePath, data) => {
         return { success: false, error: error.message };
     }
 });
+
+// PDF Conversion Handlers
+const { convertPdfToDocx } = require('./pdf-converter.cjs');
+
+ipcMain.handle('dialog:openPdf', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+            { name: 'PDF Documents', extensions: ['pdf'] },
+            { name: 'All Files', extensions: ['*'] }
+        ]
+    });
+
+    if (!result.canceled && result.filePaths.length > 0) {
+        return result.filePaths[0];
+    }
+    return null;
+});
+
+ipcMain.handle('convert-pdf-to-docx', async (event, pdfPath) => {
+    try {
+        // Generate a default output path (same name as PDF but with .docx)
+        const docxPath = pdfPath.replace(/\.pdf$/i, '.docx');
+
+        // Let user choose where to save (optional, but good UX)
+        const result = await dialog.showSaveDialog(mainWindow, {
+            defaultPath: docxPath,
+            filters: [
+                { name: 'Word Documents', extensions: ['docx'] }
+            ]
+        });
+
+        if (result.canceled || !result.filePath) {
+            return { success: false, error: 'Save cancelled' };
+        }
+
+        await convertPdfToDocx(pdfPath, result.filePath);
+        return { success: true, filePath: result.filePath };
+    } catch (error) {
+        console.error('Conversion failed:', error);
+        return { success: false, error: error.message };
+    }
+});

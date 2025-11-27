@@ -168,6 +168,34 @@ const Editor = () => {
         setFont(fontValue);
     };
 
+    const handleConvertPdf = async () => {
+        if (!isElectronEnv) {
+            alert('PDF conversion is only available in the desktop app.');
+            return;
+        }
+
+        try {
+            const pdfPath = await window.electronAPI.openPdf();
+            if (!pdfPath) return; // User cancelled
+
+            // Show loading state (optional, could add a toast or spinner here)
+            console.log('Converting PDF:', pdfPath);
+
+            const result = await window.electronAPI.convertPdfToDocx(pdfPath);
+
+            if (result.success) {
+                alert(`Successfully converted PDF to Word!\nSaved to: ${result.filePath}`);
+                // Optionally open the new file
+                // handleOpen(result.filePath); 
+            } else {
+                alert(`Conversion failed: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('Error converting PDF:', error);
+            alert('An error occurred during conversion.');
+        }
+    };
+
     return (
         <>
             <Sidebar
@@ -178,6 +206,7 @@ const Editor = () => {
                 onSelectFile={setActiveFileId}
                 onCreateFile={createNewFile}
                 onDeleteFile={deleteFile}
+                onConvertPdf={handleConvertPdf}
             />
 
             <Toolbar
@@ -227,6 +256,12 @@ const Editor = () => {
                 font={font}
                 setFont={setFont}
                 getPageRef={(id) => document.querySelector(`[data-page-number] .page-content`)}
+                // File System Props for Testing
+                files={files}
+                createNewFile={createNewFile}
+                setActiveFileId={setActiveFileId}
+                activeFileId={activeFileId}
+                updateFileMeta={updateFileMeta}
             />
         </>
     );

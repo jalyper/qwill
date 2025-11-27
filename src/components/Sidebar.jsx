@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Sidebar = ({ isOpen, onClose, files, activeFileId, onSelectFile, onCreateFile, onDeleteFile }) => {
+const Sidebar = ({ isOpen, onClose, files, activeFileId, onSelectFile, onCreateFile, onDeleteFile, onConvertPdf }) => {
     return (
         <>
             {/* Overlay */}
@@ -82,6 +82,32 @@ const Sidebar = ({ isOpen, onClose, files, activeFileId, onSelectFile, onCreateF
                             </div>
                         </div>
                     ))}
+                </div>
+
+                <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                    <h3 style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#666' }}>Tools</h3>
+                    <button
+                        onClick={onConvertPdf}
+                        style={{
+                            width: '100%',
+                            padding: '0.8rem',
+                            backgroundColor: 'transparent',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--text-color)',
+                            fontSize: '0.9rem',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        <span style={{ fontSize: '1.2rem' }}>📄</span>
+                        Convert PDF to Word
+                    </button>
                 </div>
             </div>
         </>

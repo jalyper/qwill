@@ -16,4 +16,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveFileDialog: (defaultName) => ipcRenderer.invoke('dialog:saveFile', defaultName),
     readFile: (filePath) => ipcRenderer.invoke('file:read', filePath),
     writeFile: (filePath, data) => ipcRenderer.invoke('file:write', filePath, data),
+
+    // PDF Conversion
+    openPdf: () => ipcRenderer.invoke('dialog:openPdf'),
+    convertPdfToDocx: (pdfPath) => ipcRenderer.invoke('convert-pdf-to-docx', pdfPath),
 });

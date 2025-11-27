@@ -12,10 +12,17 @@ export const useFileSystem = () => {
     useEffect(() => {
         const storedFiles = localStorage.getItem(FILE_LIST_KEY);
         if (storedFiles) {
-            const parsedFiles = JSON.parse(storedFiles);
-            setFiles(parsedFiles);
-            if (parsedFiles.length > 0) {
-                setActiveFileId(parsedFiles[0].id);
+            try {
+                const parsedFiles = JSON.parse(storedFiles);
+                setFiles(parsedFiles);
+                if (parsedFiles.length > 0) {
+                    setActiveFileId(parsedFiles[0].id);
+                }
+            } catch (error) {
+                console.error('Error parsing file list from localStorage:', error);
+                // Fallback: Clear corrupted data or start fresh
+                localStorage.removeItem(FILE_LIST_KEY);
+                createNewFile();
             }
         } else {
             // Migration or Initial State
