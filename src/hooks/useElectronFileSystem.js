@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
-import mammoth from 'mammoth';
+import { htmlToDocx, docxToHtml } from '../utils/fileConversion';
 
 // Check if running in Electron
 const isElectron = () => {
@@ -14,95 +13,6 @@ export const useElectronFileSystem = () => {
 
     useEffect(() => {
         setIsElectronEnv(isElectron());
-    }, []);
-
-    // Convert HTML to DOCX
-    const htmlToDocx = useCallback(async (htmlContent) => {
-        // Parse HTML and create DOCX document
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlContent, 'text/html');
-
-        // Remove page breaks before conversion
-        const pageBreaks = doc.querySelectorAll('.page-break');
-        pageBreaks.forEach(brk => brk.remove());
-
-        const paragraphs = [];
-        const body = doc.body;
-
-        // Process each child node
-        const processNode = (node) => {
-            if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent.trim();
-                if (text) {
-                    return new TextRun({ text });
-                }
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                const tagName = node.tagName.toLowerCase();
-                const text = node.textContent.trim();
-
-                if (!text) return null;
-
-                const runs = [];
-
-                // Handle formatting
-                const isBold = node.style.fontWeight === 'bold' || tagName === 'b' || tagName === 'strong';
-                const isItalic = node.style.fontStyle === 'italic' || tagName === 'i' || tagName === 'em';
-
-                runs.push(new TextRun({
-                    text,
-                    bold: isBold,
-                    italics: isItalic,
-                }));
-
-                // Create paragraph with appropriate heading level
-                let paragraphOptions = { children: runs };
-
-                if (tagName === 'h1') {
-                    paragraphOptions.heading = 'Heading1';
-                } else if (tagName === 'h2') {
-                    paragraphOptions.heading = 'Heading2';
-                } else if (tagName === 'h3') {
-                    paragraphOptions.heading = 'Heading3';
-                }
-
-                return new Paragraph(paragraphOptions);
-            }
-            return null;
-        };
-
-        // Process all nodes
-        Array.from(body.childNodes).forEach(node => {
-            const result = processNode(node);
-            if (result) {
-                paragraphs.push(result);
-            }
-        });
-
-        // If no paragraphs, add empty one
-        if (paragraphs.length === 0) {
-            paragraphs.push(new Paragraph({ text: '' }));
-        }
-
-        const document = new Document({
-            sections: [{
-                properties: {},
-                children: paragraphs,
-            }],
-        });
-
-        const blob = await Packer.toBlob(document);
-        return blob;
-    }, []);
-
-    // Convert DOCX to HTML
-    const docxToHtml = useCallback(async (arrayBuffer) => {
-        try {
-            const result = await mammoth.convertToHtml({ arrayBuffer });
-            return result.value;
-        } catch (error) {
-            console.error('Error converting DOCX to HTML:', error);
-            return '';
-        }
     }, []);
 
     // Open file dialog and load file

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useAutoSave from '../hooks/useAutoSave';
 import { useFileSystem } from '../hooks/useFileSystem';
 import useExport from '../hooks/useExport';
@@ -9,12 +9,13 @@ import Page from './Page';
 import { v4 as uuidv4 } from 'uuid';
 import IntegrationTests from '../tests/IntegrationTests';
 import { useSnakePagination } from '../hooks/useSnakePagination';
+import { themes } from '../constants/themes';
 
 const Editor = () => {
     const { files, activeFileId, setActiveFileId, createNewFile, updateFileMeta, deleteFile } = useFileSystem();
     const { saveFileAs, isElectronEnv, htmlToDocx, openFile } = useElectronFileSystem();
 
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [currentTheme, setCurrentTheme] = useState(themes[0]); // Default to Light
     const [isPageView, setIsPageView] = useState(true); // Default to true
     const [font, setFont] = useState('var(--font-sans)');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,6 +23,14 @@ const Editor = () => {
 
     // Use Snake Pagination Hook
     const { pages, setPages, registerPageRef, updatePageContent } = useSnakePagination([{ id: uuidv4(), content: '' }]);
+
+    // Apply theme colors
+    useEffect(() => {
+        const root = document.documentElement;
+        Object.entries(currentTheme.colors).forEach(([key, value]) => {
+            root.style.setProperty(key, value);
+        });
+    }, [currentTheme]);
 
     useEffect(() => {
         // Enforce div as paragraph separator
@@ -69,11 +78,7 @@ const Editor = () => {
         if (isElectronEnv) {
             const result = await openFile();
             if (result) {
-                // For now, just load everything into the first page and let it flow?
-                // Or try to split?
-                // Simple approach: Load into first page.
                 setPages([{ id: uuidv4(), content: result.html }]);
-
                 const newFileId = createNewFile();
                 updateFileMeta(newFileId, {
                     name: result.filePath.split(/[\\/]/).pop().replace('.docx', ''),
@@ -82,7 +87,57 @@ const Editor = () => {
                 setActiveFileId(newFileId);
             }
         } else {
-            alert('Open file is currently only supported in the desktop app.');
+            // Browser implementation
+            try {
+                let fileHandle;
+                let file;
+
+                if (window.showOpenFilePicker) {
+                    try {
+                        [fileHandle] = await window.showOpenFilePicker({
+                            types: [{
+                                description: 'Word Documents',
+                                accept: { 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] }
+                            }],
+                            excludeAcceptAllOption: false,
+                            multiple: false
+                        });
+                        file = await fileHandle.getFile();
+                    } catch (err) {
+                        if (err.name === 'AbortError') return; // User cancelled
+                        throw err;
+                    }
+                } else {
+                    // Fallback for browsers without File System Access API
+                    file = await new Promise((resolve) => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.docx';
+                        input.onchange = (e) => resolve(e.target.files[0]);
+                        input.click();
+                    });
+                }
+
+                if (!file) return;
+
+                const arrayBuffer = await file.arrayBuffer();
+                // Dynamically import to avoid circular dependency if needed, or just use the imported util
+                const { docxToHtml } = await import('../utils/fileConversion');
+                const html = await docxToHtml(arrayBuffer);
+
+                setPages([{ id: uuidv4(), content: html }]);
+
+                const newFileId = createNewFile();
+                updateFileMeta(newFileId, {
+                    name: file.name.replace('.docx', ''),
+                    preview: html.substring(0, 50)
+                });
+                setActiveFileId(newFileId);
+
+            } catch (error) {
+                console.error('Error opening file in browser:', error);
+                alert('Failed to open file.');
+            }
         }
     };
 
@@ -96,10 +151,7 @@ const Editor = () => {
         }
     };
 
-    const toggleDarkMode = () => {
-        setIsDarkMode(!isDarkMode);
-        document.body.classList.toggle('dark-mode');
-    };
+
 
     const togglePageView = () => {
         setIsPageView(!isPageView);
@@ -109,6 +161,11 @@ const Editor = () => {
     const handleFormat = (command, value = null) => {
         document.execCommand(command, false, value);
         // Focus is handled by browser usually, but we might need to ensure correct page is focused
+    };
+
+    const handleFontChange = (fontValue) => {
+        // Enforce single font per project - always update global state
+        setFont(fontValue);
     };
 
     return (
@@ -125,15 +182,15 @@ const Editor = () => {
 
             <Toolbar
                 currentFont={font}
-                onFontChange={setFont}
+                onFontChange={handleFontChange}
                 saveStatus={saveStatus}
                 lastSaved={lastSaved}
                 onManualSave={saveNow}
                 onSaveAs={handleSaveAs}
                 onOpen={handleOpen}
                 onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-                onToggleDarkMode={toggleDarkMode}
-                isDarkMode={isDarkMode}
+                currentTheme={currentTheme}
+                onThemeChange={setCurrentTheme}
                 onTogglePageView={togglePageView}
                 isPageView={isPageView}
                 onFormat={handleFormat}
@@ -167,6 +224,8 @@ const Editor = () => {
             <IntegrationTests
                 pages={pages}
                 setPages={setPages}
+                font={font}
+                setFont={setFont}
                 getPageRef={(id) => document.querySelector(`[data-page-number] .page-content`)}
             />
         </>

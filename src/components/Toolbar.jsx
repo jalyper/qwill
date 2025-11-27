@@ -3,9 +3,10 @@ import { formatDistanceToNow } from 'date-fns';
 import {
     Bold, Italic, AlignLeft, AlignCenter, AlignRight,
     Heading1, Heading2, Heading3,
-    FileText, Download, Moon, Sun, Menu,
-    Save, FolderOpen, ChevronDown, File
+    FileText, Download, Palette, Menu,
+    Save, FolderOpen, ChevronDown, File, Check
 } from 'lucide-react';
+import { themes } from '../constants/themes';
 
 const fonts = [
     { name: 'Sans Serif', value: 'var(--font-sans)' },
@@ -56,14 +57,15 @@ const Toolbar = ({
     onSaveAs,
     onOpen,
     onToggleSidebar,
-    onToggleDarkMode,
-    isDarkMode,
+    currentTheme,
+    onThemeChange,
     onTogglePageView,
     isPageView,
     onFormat,
     onExport
 }) => {
     const [showExportMenu, setShowExportMenu] = React.useState(false);
+    const [showThemeMenu, setShowThemeMenu] = React.useState(false);
 
     return (
         <div style={{
@@ -277,9 +279,72 @@ const Toolbar = ({
                 <button onClick={onTogglePageView} style={btnStyle} title="Toggle Page View">
                     <FileText size={18} style={{ opacity: isPageView ? 1 : 0.5 }} />
                 </button>
-                <button onClick={onToggleDarkMode} style={btnStyle} title="Toggle Dark Mode">
-                    {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                </button>
+
+                {/* Theme Toggle */}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => setShowThemeMenu(!showThemeMenu)}
+                        style={btnStyle}
+                        title="Change Theme"
+                    >
+                        <Palette size={18} />
+                    </button>
+                    {showThemeMenu && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            right: 0,
+                            marginTop: '0.5rem',
+                            backgroundColor: 'var(--toolbar-bg)',
+                            border: '1px solid var(--toolbar-border)',
+                            borderRadius: '6px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            zIndex: 1000,
+                            minWidth: '160px',
+                            backdropFilter: 'blur(10px)',
+                            padding: '0.3rem'
+                        }}>
+                            {themes.map(theme => (
+                                <button
+                                    key={theme.id}
+                                    onClick={() => {
+                                        onThemeChange(theme);
+                                        setShowThemeMenu(false);
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem 0.8rem',
+                                        border: 'none',
+                                        background: 'transparent',
+                                        textAlign: 'left',
+                                        cursor: 'pointer',
+                                        color: 'var(--text-color)',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '4px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        justifyContent: 'space-between'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(0,0,0,0.05)'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div style={{
+                                            width: '12px',
+                                            height: '12px',
+                                            borderRadius: '50%',
+                                            backgroundColor: theme.colors['--bg-color'],
+                                            border: '1px solid var(--text-color)'
+                                        }} />
+                                        {theme.name}
+                                    </div>
+                                    {currentTheme.id === theme.id && <Check size={14} />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
                 {/* Save Status Indicator */}
                 <div style={{

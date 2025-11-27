@@ -6,10 +6,38 @@ export const useSnakePagination = (initialPages) => {
     const [pageRefs, setPageRefs] = useState({});
 
     const registerPageRef = useCallback((id, ref) => {
-        setPageRefs(prev => ({ ...prev, [id]: ref }));
+        setPageRefs(prev => {
+            if (prev[id] === ref) return prev;
+            return { ...prev, [id]: ref };
+        });
     }, []);
 
+    // Cleanup refs for pages that no longer exist
+    useLayoutEffect(() => {
+        const currentPageIds = new Set(pages.map(p => p.id));
+        setPageRefs(prev => {
+            const cleaned = {};
+            Object.keys(prev).forEach(id => {
+                if (currentPageIds.has(id)) {
+                    cleaned[id] = prev[id];
+                }
+            });
+            return cleaned;
+        });
+    }, [pages]);
+
     const balancePages = useCallback(() => {
+        // Guard: Only balance when all page refs are registered
+        const allRefsRegistered = pages.every(page => pageRefs[page.id]);
+        if (!allRefsRegistered) {
+            console.log('[balancePages] Skipping: not all page refs registered yet', {
+                pagesCount: pages.length,
+                refsCount: Object.keys(pageRefs).length,
+                missingRefs: pages.filter(p => !pageRefs[p.id]).map(p => p.id)
+            });
+            return;
+        }
+
         let newPages = pages.map(p => ({ ...p }));
         let hasChanges = false;
 
@@ -159,8 +187,12 @@ export const useSnakePagination = (initialPages) => {
     }, [pages, pageRefs]);
 
     useLayoutEffect(() => {
+        console.log('[useLayoutEffect] Triggered - checking if should balance', {
+            pagesCount: pages.length,
+            refsCount: Object.keys(pageRefs).length
+        });
         balancePages();
-    }, [pages, pageRefs, balancePages]);
+    }, [pages, pageRefs]); // Removed balancePages from deps - we want to run when pages or refs change
 
     const updatePageContent = (id, newContent) => {
         setPages(prev => prev.map(p => p.id === id ? { ...p, content: newContent } : p));

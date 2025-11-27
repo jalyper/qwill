@@ -14,17 +14,9 @@
   --transition-speed: 0.3s;
 }
 
-body.dark-mode {
-  --bg-color: #111111;
-  --text-color: #e5e5e5;
-  --accent-color: #60a5fa;
-  --toolbar-bg: rgba(17, 17, 17, 0.8);
-  --toolbar-border: rgba(255, 255, 255, 0.05);
-}
-
 body.page-view {
-  --bg-color: #e5e7eb;
-  --editor-bg: #ffffff;
+  --editor-bg: var(--page-bg, #ffffff);
+  /* Use theme page-bg or default */
   --editor-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --editor-padding: 0;
   /* Padding is handled by .page-content */
@@ -64,16 +56,6 @@ body.page-view {
   color: #9ca3af;
   font-size: 0.8rem;
   pointer-events: none;
-}
-
-body.dark-mode.page-view {
-  --bg-color: #1f2937;
-  --editor-bg: #111111;
-  --editor-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-mode .page {
-  background-color: var(--editor-bg);
 }
 
 * {
