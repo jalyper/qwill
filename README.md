@@ -2,6 +2,9 @@
 
 Qwill is an open-source word processor built with React and Vite. It is a React-based content management system (CMS) designed to be simple, fast, and easy to use. It provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+<img width="1947" height="809" alt="image" src="https://github.com/user-attachments/assets/17ccedd9-12e3-42dd-9c29-1bdb1e9bd881" />
+
+
 ## Features
 
 - Simple and intuitive interface
