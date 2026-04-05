@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './', // Important for Electron to load assets correctly
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
 })
