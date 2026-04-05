@@ -4,24 +4,22 @@ import { useFileSystem } from '../hooks/useFileSystem';
 import useExport from '../hooks/useExport';
 import Toolbar from './Toolbar';
 import Sidebar from './Sidebar';
-import { useElectronFileSystem } from '../hooks/useElectronFileSystem';
+import { useDesktopFileSystem } from '../hooks/useDesktopFileSystem';
 import Page from './Page';
 import { v4 as uuidv4 } from 'uuid';
-import IntegrationTests from '../tests/IntegrationTests';
 import { useSnakePagination } from '../hooks/useSnakePagination';
 import { themes } from '../constants/themes';
 
 const Editor = () => {
     const { files, activeFileId, setActiveFileId, createNewFile, updateFileMeta, deleteFile } = useFileSystem();
-    const { saveFileAs, isElectronEnv, htmlToDocx, openFile } = useElectronFileSystem();
+    const { saveFileAs, openFile } = useDesktopFileSystem();
 
-    const [currentTheme, setCurrentTheme] = useState(themes[0]); // Default to Light
-    const [isPageView, setIsPageView] = useState(true); // Default to true
+    const [currentTheme, setCurrentTheme] = useState(themes[0]);
+    const [isPageView, setIsPageView] = useState(true);
     const [font, setFont] = useState('var(--font-sans)');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [focusedPageId, setFocusedPageId] = useState(null);
 
-    // Use Snake Pagination Hook
     const { pages, setPages, registerPageRef, updatePageContent } = useSnakePagination([{ id: uuidv4(), content: '' }]);
 
     // Apply theme colors
@@ -33,19 +31,33 @@ const Editor = () => {
     }, [currentTheme]);
 
     useEffect(() => {
-        // Enforce div as paragraph separator
         document.execCommand('defaultParagraphSeparator', false, 'div');
-        // Set page view class by default
         document.body.classList.add('page-view');
+
+        // Zoom shortcuts (Ctrl+=/Ctrl+-/Ctrl+0)
+        const handleKeydown = (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    document.body.style.zoom = (parseFloat(document.body.style.zoom || 1) + 0.1).toFixed(1);
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    document.body.style.zoom = Math.max(0.3, parseFloat(document.body.style.zoom || 1) - 0.1).toFixed(1);
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    document.body.style.zoom = '1';
+                }
+            }
+        };
+        document.addEventListener('keydown', handleKeydown);
+        return () => document.removeEventListener('keydown', handleKeydown);
     }, []);
 
-    // Combine all pages content for saving/exporting
     const getFullContent = useCallback(() => {
         return pages.map(p => p.content).join('');
     }, [pages]);
 
     const { content, setContent, saveStatus, lastSaved, saveNow } = useAutoSave(activeFileId, (id, meta) => {
-        // Extract text content for preview/name from first page
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = pages[0]?.content || '';
         const text = tempDiv.textContent || tempDiv.innerText || '';
@@ -53,6 +65,16 @@ const Editor = () => {
         const name = firstLine.trim() || 'Untitled';
         updateFileMeta(id, { ...meta, name, preview: text.substring(0, 50) });
     });
+
+    // When activeFileId changes, load the saved content into pages
+    const prevFileIdRef = React.useRef(activeFileId);
+    useEffect(() => {
+        if (activeFileId && activeFileId !== prevFileIdRef.current) {
+            prevFileIdRef.current = activeFileId;
+            const saved = localStorage.getItem('qwill-content-' + activeFileId) || '';
+            setPages([{ id: uuidv4(), content: saved }]);
+        }
+    }, [activeFileId, setPages]);
 
     // Update auto-save content when pages change
     useEffect(() => {
@@ -75,83 +97,22 @@ const Editor = () => {
     };
 
     const handleOpen = async () => {
-        if (isElectronEnv) {
-            const result = await openFile();
-            if (result) {
-                setPages([{ id: uuidv4(), content: result.html }]);
-                const newFileId = createNewFile();
-                updateFileMeta(newFileId, {
-                    name: result.filePath.split(/[\\/]/).pop().replace('.docx', ''),
-                    preview: result.html.substring(0, 50)
-                });
-                setActiveFileId(newFileId);
-            }
-        } else {
-            // Browser implementation
-            try {
-                let fileHandle;
-                let file;
-
-                if (window.showOpenFilePicker) {
-                    try {
-                        [fileHandle] = await window.showOpenFilePicker({
-                            types: [{
-                                description: 'Word Documents',
-                                accept: { 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] }
-                            }],
-                            excludeAcceptAllOption: false,
-                            multiple: false
-                        });
-                        file = await fileHandle.getFile();
-                    } catch (err) {
-                        if (err.name === 'AbortError') return; // User cancelled
-                        throw err;
-                    }
-                } else {
-                    // Fallback for browsers without File System Access API
-                    file = await new Promise((resolve) => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = '.docx';
-                        input.onchange = (e) => resolve(e.target.files[0]);
-                        input.click();
-                    });
-                }
-
-                if (!file) return;
-
-                const arrayBuffer = await file.arrayBuffer();
-                // Dynamically import to avoid circular dependency if needed, or just use the imported util
-                const { docxToHtml } = await import('../utils/fileConversion');
-                const html = await docxToHtml(arrayBuffer);
-
-                setPages([{ id: uuidv4(), content: html }]);
-
-                const newFileId = createNewFile();
-                updateFileMeta(newFileId, {
-                    name: file.name.replace('.docx', ''),
-                    preview: html.substring(0, 50)
-                });
-                setActiveFileId(newFileId);
-
-            } catch (error) {
-                console.error('Error opening file in browser:', error);
-                alert('Failed to open file.');
-            }
+        const result = await openFile();
+        if (result) {
+            setPages([{ id: uuidv4(), content: result.html }]);
+            const newFileId = createNewFile();
+            updateFileMeta(newFileId, {
+                name: result.filePath.split(/[\\/]/).pop().replace('.docx', ''),
+                preview: result.html.substring(0, 50)
+            });
+            setActiveFileId(newFileId);
         }
     };
 
     const handleSaveAs = async () => {
         const fullContent = getFullContent();
-        if (isElectronEnv) {
-            await saveFileAs(fullContent);
-        } else {
-            const filename = files.find(f => f.id === activeFileId)?.name || 'Untitled';
-            await exportAsDocx(fullContent, filename);
-        }
+        await saveFileAs(fullContent);
     };
-
-
 
     const togglePageView = () => {
         setIsPageView(!isPageView);
@@ -160,39 +121,42 @@ const Editor = () => {
 
     const handleFormat = (command, value = null) => {
         document.execCommand(command, false, value);
-        // Focus is handled by browser usually, but we might need to ensure correct page is focused
     };
 
     const handleFontChange = (fontValue) => {
-        // Enforce single font per project - always update global state
         setFont(fontValue);
     };
 
     const handleConvertPdf = async () => {
-        if (!isElectronEnv) {
-            alert('PDF conversion is only available in the desktop app.');
-            return;
-        }
-
         try {
-            const pdfPath = await window.electronAPI.openPdf();
-            if (!pdfPath) return; // User cancelled
+            const { open, save } = await import('@tauri-apps/plugin-dialog');
+            const { invoke } = await import('@tauri-apps/api/core');
 
-            // Show loading state (optional, could add a toast or spinner here)
-            console.log('Converting PDF:', pdfPath);
+            const pdfPath = await open({
+                filters: [
+                    { name: 'PDF Documents', extensions: ['pdf'] },
+                    { name: 'All Files', extensions: ['*'] },
+                ],
+            });
+            if (!pdfPath) return;
 
-            const result = await window.electronAPI.convertPdfToDocx(pdfPath);
+            const defaultDocxName = (typeof pdfPath === 'string' ? pdfPath : pdfPath.path)
+                .replace(/\.pdf$/i, '.docx');
+            const docxPath = await save({
+                defaultPath: defaultDocxName,
+                filters: [{ name: 'Word Documents', extensions: ['docx'] }],
+            });
+            if (!docxPath) return;
 
-            if (result.success) {
-                alert(`Successfully converted PDF to Word!\nSaved to: ${result.filePath}`);
-                // Optionally open the new file
-                // handleOpen(result.filePath); 
-            } else {
-                alert(`Conversion failed: ${result.error}`);
-            }
+            const resultPath = await invoke('convert_pdf_to_docx', {
+                pdfPath: typeof pdfPath === 'string' ? pdfPath : pdfPath.path,
+                docxPath,
+            });
+
+            alert(`Successfully converted PDF to Word!\nSaved to: ${resultPath}`);
         } catch (error) {
             console.error('Error converting PDF:', error);
-            alert('An error occurred during conversion.');
+            alert(`Conversion failed: ${error}`);
         }
     };
 
@@ -249,20 +213,6 @@ const Editor = () => {
                     />
                 ))}
             </div>
-            {/* Integration Tests Harness */}
-            <IntegrationTests
-                pages={pages}
-                setPages={setPages}
-                font={font}
-                setFont={setFont}
-                getPageRef={(id) => document.querySelector(`[data-page-number] .page-content`)}
-                // File System Props for Testing
-                files={files}
-                createNewFile={createNewFile}
-                setActiveFileId={setActiveFileId}
-                activeFileId={activeFileId}
-                updateFileMeta={updateFileMeta}
-            />
         </>
     );
 };
