@@ -1,0 +1,15 @@
+{
+  "branch": "test/unit-tests",
+  "test_location": "src/__tests__/",
+  "test_framework": "vitest",
+  "feature": "Core modules: file conversion, file system, auto-save, themes, PDF converter",
+  "created_at": "2026-04-04T00:00:00Z",
+  "source_files": [
+    "src/utils/fileConversion.js",
+    "src/hooks/useFileSystem.js",
+    "src/hooks/useAutoSave.js",
+    "src/constants/themes.js",
+    "electron/pdf-converter.cjs"
+  ]
+  "plan_approved": true
+}
