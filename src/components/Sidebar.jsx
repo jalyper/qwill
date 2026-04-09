@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const Sidebar = ({ isOpen, onClose, files, activeFileId, onSelectFile, onCreateFile, onDeleteFile, onConvertPdf }) => {
+const Sidebar = ({ isOpen, onClose, files, activeFileId, onSelectFile, onCreateFile, onConvertPdf }) => {
     return (
         <>
             {/* Overlay */}

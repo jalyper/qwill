@@ -8,44 +8,10 @@ export const useFileSystem = () => {
     const [files, setFiles] = useState([]);
     const [activeFileId, setActiveFileId] = useState(null);
 
-    // Load file list on mount
-    useEffect(() => {
-        const storedFiles = localStorage.getItem(FILE_LIST_KEY);
-        if (storedFiles) {
-            try {
-                const parsedFiles = JSON.parse(storedFiles);
-                setFiles(parsedFiles);
-                if (parsedFiles.length > 0) {
-                    setActiveFileId(parsedFiles[0].id);
-                }
-            } catch (error) {
-                console.error('Error parsing file list from localStorage:', error);
-                // Fallback: Clear corrupted data or start fresh
-                localStorage.removeItem(FILE_LIST_KEY);
-                createNewFile();
-            }
-        } else {
-            // Migration or Initial State
-            const legacyContent = localStorage.getItem('qwill-content');
-            if (legacyContent) {
-                const newFile = {
-                    id: uuidv4(),
-                    name: 'Untitled',
-                    lastModified: Date.now(),
-                    preview: legacyContent.substring(0, 50)
-                };
-                localStorage.setItem(CONTENT_PREFIX + newFile.id, legacyContent);
-                localStorage.setItem(FILE_LIST_KEY, JSON.stringify([newFile]));
-                localStorage.removeItem('qwill-content'); // Cleanup legacy
-                setFiles([newFile]);
-                setActiveFileId(newFile.id);
-            } else {
-                // Create initial empty file
-                createNewFile();
-            }
-        }
-    }, []);
-
+    // createNewFile is declared BEFORE the mount effect because the effect's
+    // error-recovery and legacy-migration paths depend on calling it. With
+    // the previous ordering (effect first, then createNewFile) the fallback
+    // threw a ReferenceError if localStorage was corrupted on first load.
     const createNewFile = useCallback(() => {
         const newFile = {
             id: uuidv4(),
@@ -61,6 +27,46 @@ export const useFileSystem = () => {
         localStorage.setItem(CONTENT_PREFIX + newFile.id, '');
         setActiveFileId(newFile.id);
         return newFile.id;
+    }, []);
+
+    // Load file list on mount
+    useEffect(() => {
+        const storedFiles = localStorage.getItem(FILE_LIST_KEY);
+        if (storedFiles) {
+            try {
+                const parsedFiles = JSON.parse(storedFiles);
+                setFiles(parsedFiles);
+                if (parsedFiles.length > 0) {
+                    setActiveFileId(parsedFiles[0].id);
+                }
+            } catch (error) {
+                console.error('Error parsing file list from localStorage:', error);
+                // Fallback: clear corrupted data and start fresh
+                localStorage.removeItem(FILE_LIST_KEY);
+                createNewFile();
+            }
+        } else {
+            // Migration from pre-multi-document Qwill or first-run empty state
+            const legacyContent = localStorage.getItem('qwill-content');
+            if (legacyContent) {
+                const newFile = {
+                    id: uuidv4(),
+                    name: 'Untitled',
+                    lastModified: Date.now(),
+                    preview: legacyContent.substring(0, 50)
+                };
+                localStorage.setItem(CONTENT_PREFIX + newFile.id, legacyContent);
+                localStorage.setItem(FILE_LIST_KEY, JSON.stringify([newFile]));
+                localStorage.removeItem('qwill-content'); // Cleanup legacy
+                setFiles([newFile]);
+                setActiveFileId(newFile.id);
+            } else {
+                createNewFile();
+            }
+        }
+        // createNewFile is stable (useCallback with []), so we intentionally
+        // omit it from deps to keep this as a mount-only effect.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const updateFileMeta = useCallback((id, updates) => {

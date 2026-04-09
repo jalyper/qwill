@@ -14,10 +14,14 @@ const useAutoSave = (fileId, onSaveCallback) => {
         callbackRef.current = onSaveCallback;
     }, [onSaveCallback]);
 
-    // Load content when fileId changes
+    // Load content when fileId changes. This legitimately needs to call
+    // setState in an effect because the content source (localStorage) is
+    // outside React — we can't derive `value` from props, and loading has
+    // to happen on the mount/fileId-change edge.
     useEffect(() => {
         if (!fileId) return;
         const saved = localStorage.getItem(CONTENT_PREFIX + fileId);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setValue(saved || '');
         setStatus('saved');
     }, [fileId]);
@@ -33,8 +37,13 @@ const useAutoSave = (fileId, onSaveCallback) => {
         }
     }, [fileId, value]);
 
+    // Debounced auto-save: whenever `value` changes, enter 'saving' state
+    // and schedule a real save 1s later. The setStatus here is intentional —
+    // it's how the UI shows the "saving…" indicator while the debounce
+    // window is open — so we silence the effect-state lint.
     useEffect(() => {
         if (!fileId) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStatus('saving');
 
         if (timeoutRef.current) clearTimeout(timeoutRef.current);

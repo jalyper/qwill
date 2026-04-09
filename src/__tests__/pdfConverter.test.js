@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { Buffer } from 'node:buffer';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 
 // The CJS module electron/pdf-converter.cjs uses require('fs') and require('pdf-parse')

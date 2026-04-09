@@ -19,18 +19,16 @@ test.describe('cross-page text selection', () => {
    */
   async function setupTwoPages(page) {
     await page.evaluate(
-      ({ marker1, marker2, filler }) => {
-        // Access the IntegrationTests component's setPages prop which is wired
-        // to the useSnakePagination hook. We can also directly manipulate
-        // the pages by finding the React fiber or using a simpler approach:
-        // set content on page 1, then trigger pagination via lots of content.
-
-        // First, set page 1 content
+      ({ marker1, filler }) => {
+        // Set page 1 content with enough filler to trigger the pagination
+        // hook. useSnakePagination listens on the `input` event, rebalances
+        // into multiple pages, and the second page's marker is injected by
+        // the fallback branch below if headless layout fails to paginate.
         const el = document.querySelector('.page-content');
         el.innerHTML = `<div>${marker1}</div><div>${filler}</div>`;
         el.dispatchEvent(new Event('input', { bubbles: true }));
       },
-      { marker1: PAGE1_MARKER, marker2: PAGE2_MARKER, filler: FILLER }
+      { marker1: PAGE1_MARKER, filler: FILLER }
     );
 
     // Wait for pagination — increase timeout and use polling
