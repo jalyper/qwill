@@ -3,8 +3,26 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "author": "Qwill",
-  "description": "A beautiful, minimalist word processor",
+  "author": "Keaton Anderson",
+  "description": "Qwill — an open-source minimalist word processor built with React and Tauri. Imports and exports .docx, exports PDF, works offline.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jalyper/qwill.git"
+  },
+  "homepage": "https://github.com/jalyper/qwill",
+  "keywords": [
+    "word-processor",
+    "docx",
+    "pdf-export",
+    "react",
+    "vite",
+    "tauri",
+    "rust",
+    "desktop-app",
+    "offline-first",
+    "open-source"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -20,7 +38,7 @@
     "@tauri-apps/plugin-fs": "^2.5.0",
     "date-fns": "^4.1.0",
     "docx": "^9.5.1",
-    "html2pdf.js": "^0.12.1",
+    "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.554.0",
     "mammoth": "^1.11.0",
     "react": "^19.2.0",
