@@ -11,7 +11,7 @@ import { useSnakePagination } from '../hooks/useSnakePagination';
 import { themes } from '../constants/themes';
 
 const Editor = () => {
-    const { files, activeFileId, setActiveFileId, createNewFile, updateFileMeta, deleteFile } = useFileSystem();
+    const { files, activeFileId, setActiveFileId, createNewFile, updateFileMeta } = useFileSystem();
     const { saveFileAs, openFile } = useDesktopFileSystem();
 
     const [currentTheme, setCurrentTheme] = useState(themes[0]);
@@ -57,7 +57,7 @@ const Editor = () => {
         return pages.map(p => p.content).join('');
     }, [pages]);
 
-    const { content, setContent, saveStatus, lastSaved, saveNow } = useAutoSave(activeFileId, (id, meta) => {
+    const { content, setContent, saveStatus, saveNow } = useAutoSave(activeFileId, (id, meta) => {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = pages[0]?.content || '';
         const text = tempDiv.textContent || tempDiv.innerText || '';
@@ -169,7 +169,6 @@ const Editor = () => {
                 activeFileId={activeFileId}
                 onSelectFile={setActiveFileId}
                 onCreateFile={createNewFile}
-                onDeleteFile={deleteFile}
                 onConvertPdf={handleConvertPdf}
             />
 
@@ -177,7 +176,6 @@ const Editor = () => {
                 currentFont={font}
                 onFontChange={handleFontChange}
                 saveStatus={saveStatus}
-                lastSaved={lastSaved}
                 onManualSave={saveNow}
                 onSaveAs={handleSaveAs}
                 onOpen={handleOpen}

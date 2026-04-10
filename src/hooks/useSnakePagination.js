@@ -63,6 +63,8 @@ export const useSnakePagination = (initialPages) => {
                             const mid = Math.floor((min + max) / 2);
                             if (mid === 0) { min = 1; continue; }
 
+                            // lastChild is a DOM text node obtained via
+                            // pageEl.lastChild, not a useState value.
                             lastChild.textContent = text.substring(0, mid);
                             pageEl.appendChild(lastChild);
 
@@ -187,12 +189,13 @@ export const useSnakePagination = (initialPages) => {
     }, [pages, pageRefs]);
 
     useLayoutEffect(() => {
-        console.log('[useLayoutEffect] Triggered - checking if should balance', {
-            pagesCount: pages.length,
-            refsCount: Object.keys(pageRefs).length
-        });
         balancePages();
-    }, [pages, pageRefs]); // Removed balancePages from deps - we want to run when pages or refs change
+        // balancePages is intentionally omitted — adding it to deps would
+        // cause an infinite loop since balancePages calls setPages which
+        // recreates the function. We only want to rebalance when pages or
+        // refs change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pages, pageRefs]);
 
     const updatePageContent = (id, newContent) => {
         setPages(prev => prev.map(p => p.id === id ? { ...p, content: newContent } : p));

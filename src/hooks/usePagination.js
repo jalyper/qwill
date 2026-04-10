@@ -20,15 +20,11 @@ export const usePagination = () => {
         const children = Array.from(container.children);
         const blocks = children.filter(child => !child.classList.contains('page-break'));
 
-        console.log('Paginate running. Blocks:', blocks.length);
-
         if (blocks.length === 0) return;
 
         let currentHeight = 0;
         let domChanged = false;
-        let lastBlock = null;
 
-        // Helper to create a break
         const createBreak = () => {
             const div = document.createElement('div');
             div.className = 'page-break';
@@ -36,11 +32,9 @@ export const usePagination = () => {
             return div;
         };
 
-        // We will build a list of operations or just do them?
-        // Doing them in-place is tricky if we insert/remove.
-        // Let's iterate through BLOCKS and check the gap BEFORE them.
-
-        blocks.forEach((block, index) => {
+        // Iterate through blocks and insert page breaks where content would
+        // overflow the page height.
+        blocks.forEach((block) => {
             const height = block.offsetHeight;
 
             // If this single block is huge, we might need to split it (advanced)
@@ -57,14 +51,11 @@ export const usePagination = () => {
             } else {
                 currentHeight += height;
             }
-
-            lastBlock = block;
         });
 
-        // If DOM changed, update the content state to match
-        // This ensures saving works and React doesn't get out of sync
+        // If DOM changed, update the content state to match so saving
+        // works and React doesn't get out of sync.
         if (domChanged) {
-            console.log('DOM changed, updating content state');
             const newHtml = container.innerHTML;
             setContent(newHtml);
         }

@@ -106,10 +106,18 @@ export const htmlToDocx = async (htmlContent) => {
     return blob;
 };
 
-// Convert DOCX to HTML
+// Convert DOCX to HTML. Mammoth accepts `{ arrayBuffer }` in browsers but
+// `{ buffer }` in Node (where Buffer is the canonical byte container), so we
+// feature-detect and pass the right shape. This fixes a long-standing bug
+// where vitest runs couldn't exercise this code path because the Node branch
+// of mammoth rejected `{ arrayBuffer }`.
 export const docxToHtml = async (arrayBuffer) => {
     try {
-        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const hasBuffer = typeof globalThis.Buffer !== 'undefined';
+        const input = hasBuffer
+            ? { buffer: globalThis.Buffer.from(arrayBuffer) }
+            : { arrayBuffer };
+        const result = await mammoth.convertToHtml(input);
         return result.value;
     } catch (error) {
         console.error('Error converting DOCX to HTML:', error);

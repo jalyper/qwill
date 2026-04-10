@@ -1,5 +1,4 @@
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import {
     Bold, Italic, AlignLeft, AlignCenter, AlignRight,
     Heading1, Heading2, Heading3,
@@ -41,18 +40,10 @@ const btnStyle = {
     opacity: 0.7
 };
 
-const activeBtnStyle = {
-    ...btnStyle,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    opacity: 1,
-    border: '1px solid rgba(0,0,0,0.1)'
-};
-
 const Toolbar = ({
     currentFont,
     onFontChange,
     saveStatus,
-    lastSaved,
     onManualSave,
     onSaveAs,
     onOpen,
