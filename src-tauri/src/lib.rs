@@ -16,6 +16,9 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::documents::read_document,
+            commands::documents::write_document,
+            commands::documents::launch_document,
             commands::pdf_converter::convert_pdf_to_docx
         ])
         .run(tauri::generate_context!())
