@@ -28,3 +28,4 @@ tauri-plugin-fs = "2"
 pdf-extract = "0.8"
 # DOCX generation
 docx-rs = "0.4"
+tauri-plugin-single-instance = "2"

@@ -1,0 +1,309 @@
+/* The page view and the document inside it.
+ *
+ * Geometry comes from CSS variables set on .qw-pages (see DocumentView.jsx):
+ * --page-w/--page-h, margins --page-mt/mr/mb/ml, --pages-h (height of the
+ * whole stack). Base text styles come from docStyles.js (--doc-*, --hN-*).
+ *
+ * Pagination relies on two rules here:
+ *   1. The ProseMirror root is a flex column, so vertical margins never
+ *      collapse and page-break spacers shift content by exactly their height.
+ *   2. .qw-measuring hides the spacers while layout is measured.
+ */
+
+.qw-canvas {
+  padding: 24px 32px 64px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.qw-pages {
+  position: relative;
+  width: var(--page-w);
+  margin: 0 auto;
+}
+
+.qw-page {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--page-h);
+  background: var(--page-bg);
+  box-shadow: var(--editor-shadow);
+  pointer-events: none;
+}
+
+.qw-page-number {
+  position: absolute;
+  right: var(--page-mr);
+  bottom: calc(var(--page-mb) / 2 - 0.6em);
+  font: 9pt var(--doc-font);
+  opacity: 0.6;
+}
+
+.qw-editor-host {
+  position: relative;
+  z-index: 1;
+}
+
+.qw-measuring .qw-page-spacer {
+  display: none !important;
+}
+
+.qw-page-spacer {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.qw-doc.ProseMirror {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--pages-h);
+  padding: var(--page-mt) var(--page-mr) var(--page-mb) var(--page-ml);
+  outline: none;
+  font-family: var(--doc-font);
+  font-size: var(--doc-size);
+  line-height: var(--doc-line);
+  color: var(--doc-color);
+  overflow-wrap: break-word;
+  caret-color: currentColor;
+  tab-size: 0.5in;
+}
+
+.qw-doc > * {
+  flex: none;
+  min-width: 0;
+}
+
+.qw-doc p {
+  margin: var(--doc-before) 0 var(--doc-after);
+}
+
+.qw-doc h1 { font: var(--h1-style) var(--h1-weight) var(--h1-size) / var(--doc-line) var(--h1-font); color: var(--h1-color); margin: var(--h1-before) 0 var(--h1-after); }
+.qw-doc h2 { font: var(--h2-style) var(--h2-weight) var(--h2-size) / var(--doc-line) var(--h2-font); color: var(--h2-color); margin: var(--h2-before) 0 var(--h2-after); }
+.qw-doc h3 { font: var(--h3-style) var(--h3-weight) var(--h3-size) / var(--doc-line) var(--h3-font); color: var(--h3-color); margin: var(--h3-before) 0 var(--h3-after); }
+.qw-doc h4 { font: var(--h4-style) var(--h4-weight) var(--h4-size) / var(--doc-line) var(--h4-font); color: var(--h4-color); margin: var(--h4-before) 0 var(--h4-after); }
+.qw-doc h5 { font: var(--h5-style) var(--h5-weight) var(--h5-size) / var(--doc-line) var(--h5-font); color: var(--h5-color); margin: var(--h5-before) 0 var(--h5-after); }
+.qw-doc h6 { font: var(--h6-style) var(--h6-weight) var(--h6-size) / var(--doc-line) var(--h6-font); color: var(--h6-color); margin: var(--h6-before) 0 var(--h6-after); }
+
+/* Lists: Word's default 0.5in indent with a hanging marker. */
+.qw-doc ul,
+.qw-doc ol {
+  margin: var(--doc-before) 0 var(--doc-after);
+  padding-left: 0.5in;
+}
+
+.qw-doc li > p,
+.qw-doc li > ul,
+.qw-doc li > ol {
+  margin: 0;
+}
+
+.qw-doc ul { list-style-type: disc; }
+.qw-doc ul ul { list-style-type: circle; }
+.qw-doc ul ul ul { list-style-type: square; }
+.qw-doc ol { list-style-type: decimal; }
+.qw-doc ol ol { list-style-type: lower-alpha; }
+.qw-doc ol ol ol { list-style-type: lower-roman; }
+
+/* Mirrors the Quote style written to .docx. */
+.qw-doc blockquote {
+  margin: 10pt 0.6in 8pt;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.qw-doc blockquote p {
+  margin: 0 0 var(--doc-after);
+}
+
+.qw-doc pre {
+  margin: 0 0 var(--doc-after);
+  padding: 4px 6px;
+  background: rgba(127, 127, 127, 0.12);
+  font: 10pt/1.2 Consolas, 'Cascadia Mono', monospace;
+  white-space: pre-wrap;
+}
+
+.qw-doc code {
+  font-family: Consolas, 'Cascadia Mono', monospace;
+}
+
+.qw-doc hr {
+  width: 100%;
+  margin: 6pt 0;
+  border: 0;
+  border-bottom: 1px solid #a0a0a0;
+}
+
+.qw-doc a {
+  color: #0563c1;
+  text-decoration: underline;
+}
+
+.qw-doc img {
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+.qw-doc mark {
+  color: #1a1a1a;
+  padding: 0;
+}
+
+/* Dark themes: lighten the document's own colors on screen only (like
+   Word's dark mode). The file keeps its real colors, and print is unaffected. */
+@media screen {
+  [data-dark] .qw-doc h1 { color: color-mix(in srgb, var(--h1-color) 45%, #fff); }
+  [data-dark] .qw-doc h2 { color: color-mix(in srgb, var(--h2-color) 45%, #fff); }
+  [data-dark] .qw-doc h3 { color: color-mix(in srgb, var(--h3-color) 45%, #fff); }
+  [data-dark] .qw-doc h4 { color: color-mix(in srgb, var(--h4-color) 45%, #fff); }
+  [data-dark] .qw-doc h5 { color: color-mix(in srgb, var(--h5-color) 45%, #fff); }
+  [data-dark] .qw-doc h6 { color: color-mix(in srgb, var(--h6-color) 45%, #fff); }
+  [data-dark] .qw-doc a { color: #6ea8ff; }
+  /* Highlights stay light, so text on them must stay dark. */
+  [data-dark] .qw-doc mark { color: #1a1a1a !important; }
+}
+
+.qw-doc .qw-page-break {
+  height: 14px;
+  margin-top: 4px;
+  border-top: 1px dashed rgba(127, 127, 127, 0.6);
+  text-align: center;
+  font: 8pt/14px var(--ui-font);
+  color: rgba(127, 127, 127, 0.9);
+  cursor: default;
+}
+
+.qw-doc .qw-page-break::after {
+  content: 'Page break';
+}
+
+.qw-doc .ProseMirror-selectednode {
+  outline: 2px solid var(--accent-color);
+}
+
+/* Tables look like Word's "Table Grid". */
+.qw-doc .tableWrapper {
+  margin: 0 0 var(--doc-after);
+  overflow-x: auto;
+}
+
+.qw-doc table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 0;
+}
+
+.qw-doc td,
+.qw-doc th {
+  position: relative;
+  min-width: 24px;
+  padding: 0 7px;
+  border: 1px solid #7f7f7f;
+  vertical-align: top;
+  font-weight: inherit;
+  text-align: inherit;
+}
+
+.qw-doc th {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.qw-doc td > p,
+.qw-doc th > p {
+  margin: 0;
+}
+
+.qw-doc .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(43, 87, 154, 0.18);
+  pointer-events: none;
+}
+
+.qw-doc .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent-color);
+  pointer-events: none;
+}
+
+.qw-doc.resize-cursor {
+  cursor: col-resize;
+}
+
+.qw-find-hit {
+  background: rgba(255, 200, 0, 0.45);
+  border-radius: 1px;
+}
+
+.qw-find-current {
+  background: rgba(255, 128, 0, 0.75);
+}
+
+/* ---- print: one sheet per page, breaking where the screen shows ------- */
+
+@media print {
+  html,
+  body,
+  #root,
+  .qw-app,
+  .qw-main {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    background: #fff !important;
+  }
+
+  .qw-titlebar,
+  .qw-toolbar,
+  .qw-status,
+  .qw-find,
+  .qw-toast,
+  .qw-page,
+  .qw-backdrop {
+    display: none !important;
+  }
+
+  .qw-canvas {
+    padding: 0 !important;
+    zoom: 1 !important;
+    width: auto !important;
+  }
+
+  .qw-pages {
+    width: auto !important;
+    color: #000;
+  }
+
+  .qw-doc.ProseMirror {
+    display: block;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .qw-page-spacer {
+    height: 0 !important;
+    break-before: page;
+  }
+
+  .qw-doc .qw-page-break {
+    height: 0;
+    border: 0;
+    margin: 0;
+  }
+
+  .qw-doc .qw-page-break::after {
+    content: none;
+  }
+
+  .qw-find-hit,
+  .qw-find-current {
+    background: none;
+  }
+}

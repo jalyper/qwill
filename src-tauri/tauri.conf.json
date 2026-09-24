@@ -18,11 +18,19 @@
         "minWidth": 800,
         "minHeight": 600,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "label": "main"
       }
     ],
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: blob:",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost"
+      }
     }
   },
   "bundle": {
@@ -35,6 +43,17 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "shortDescription": "A beautiful, minimalist word processor"
+    "shortDescription": "A beautiful, minimalist word processor",
+    "fileAssociations": [
+      {
+        "ext": [
+          "docx"
+        ],
+        "name": "Word Document",
+        "description": "Word Document",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }
+    ]
   }
 }
