@@ -2,7 +2,7 @@
 
 ## START HERE (updated 2026-09-24)
 
-**State:** the editor was rebuilt on branch `rebuild/tiptap-core` (see the PR for the merge status). Everything in README "What works" is implemented and verified: unit tests, a 9-test Playwright suite (stable over 3 repeats), and the real Tauri app on Windows driven over CDP (open from command line with a Unicode path, edit, Ctrl+S to the same file, close prompt → Save → exit, second launch forwarded to the running window).
+**State:** the editor was rebuilt and merged to `main` (PR #3, CI green on Ubuntu and Windows). Everything in README "What works" is implemented and verified: unit tests, a 9-test Playwright suite (stable over 3 repeats), and the real Tauri app on Windows driven over CDP (open from command line with a Unicode path, edit, Ctrl+S to the same file, close prompt → Save → exit, second launch forwarded to the running window).
 
 **Verify before trusting anything:** `npm run check` (lint, unit, build, E2E) and `npm run test:rust`. Behaviour claims about editing must be checked in a browser, not only in unit tests. The old suite was green while the app deleted text.
 
