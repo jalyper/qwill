@@ -29,7 +29,7 @@ Built with React 19, [TipTap](https://tiptap.dev) / ProseMirror, and Tauri 2. Th
 - Saving is atomic (temp file + rename), so a crash mid-save never corrupts the document
 - Every open document is also autosaved as a draft; after a crash or a closed window, your work is restored on the next launch
 - Tabs for open documents, recent files, a Word-style "Save changes?" prompt when closing
-- Double-click a `.docx` (the installer registers the file type): a running Qwill opens it in a new tab
+- Open a `.docx` from Explorer ("Open with", or double-click once Qwill is the default app): if Qwill is already running, the file opens in a new tab of that window
 - Convert PDF to Word (text only)
 
 ## Known limitations
@@ -68,7 +68,7 @@ CI runs all of these on every push and pull request (`.github/workflows/ci.yml`)
 
 ## How it fits together
 
-See [ARCHITECTURE.md](ARCHITECTURE.md).
+See [ARCHITECTURE.md](ARCHITECTURE.md). Release history is in [CHANGELOG.md](CHANGELOG.md); current status and next steps are in [SESSION_HANDOFF.md](SESSION_HANDOFF.md).
 
 ## License
 

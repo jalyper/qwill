@@ -68,6 +68,14 @@ Document files go through Rust commands rather than the fs plugin because a rece
 
 `src/__tests__/docxRoundTrip.test.js` builds a document with every construct the editor supports, exports it, imports it, and requires an identical result.
 
+## Themes
+
+`constants/themes.js` colors the app chrome and the page background. Dark themes set `data-dark` on the root, and `styles/document.css` then lightens the document's own heading and link colors on screen only (like Word's dark mode). The file keeps its real colors, and print CSS ignores the adjustment. Highlighted text is always drawn dark.
+
+## Debugging
+
+In dev builds (`npm run dev` / `tauri dev`) the active editor is exposed as `window.__qwillEditor`, so scripts and the console can inspect or drive it. Production builds don't expose it.
+
 ## Tests
 
 | Command | What it covers |

@@ -1,7 +1,7 @@
 {
   "name": "qwill",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "author": "Keaton Anderson",
   "description": "Qwill — an open-source desktop word processor. Edits .docx files directly, with real pages, and works fully offline.",
