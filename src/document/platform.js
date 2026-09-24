@@ -82,6 +82,16 @@ export async function launchDocumentPath() {
     }
 }
 
+/**
+ * A .docx opened while Qwill is already running (the single-instance plugin
+ * forwards it). Returns an unlisten function.
+ */
+export async function onOpenDocumentRequest(handler) {
+    if (!isTauri()) return () => {};
+    const { listen } = await import('@tauri-apps/api/event');
+    return listen('open-document', (event) => handler(event.payload));
+}
+
 export async function showError(message) {
     if (isTauri()) {
         try {

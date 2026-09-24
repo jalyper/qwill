@@ -15,6 +15,7 @@ export const themes = [
     },
     {
         id: 'dark',
+        dark: true,
         name: 'Dark',
         colors: {
             '--bg-color': '#313337', // App background
@@ -43,6 +44,7 @@ export const themes = [
     },
     {
         id: 'midnight',
+        dark: true,
         name: 'Midnight',
         colors: {
             '--bg-color': '#020617', // Slate-950 (Almost black blue)
@@ -57,6 +59,7 @@ export const themes = [
     },
     {
         id: 'forest',
+        dark: true,
         name: 'Forest',
         colors: {
             '--bg-color': '#1b1c1b', // Warm Black/Dark Earth

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "author": "Keaton Anderson",
-  "description": "Qwill — an open-source minimalist word processor built with React and Tauri. Imports and exports .docx, exports PDF, works offline.",
+  "description": "Qwill — an open-source desktop word processor. Edits .docx files directly, with real pages, and works fully offline.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,7 +14,6 @@
   "keywords": [
     "word-processor",
     "docx",
-    "pdf-export",
     "react",
     "vite",
     "tauri",
@@ -29,8 +28,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "tauri:dev": "npx tauri dev",
-    "tauri:build": "npx tauri build"
+    "test:e2e": "playwright test",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml --lib",
+    "check": "npm run lint && npm test && npm run build && npm run test:e2e",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
@@ -69,5 +71,8 @@
     "jsdom": "^29.0.1",
     "vite": "^7.2.4",
     "vitest": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -82,6 +82,8 @@ export default function DocumentView({ docId, draft, zoom, spellcheck, onEdit, o
         if (!editor) return undefined;
         onEditor?.(editor);
         registerLiveContent(() => ({ id: docId, content: editor.getJSON() }));
+        // Dev builds only: lets test scripts drive the editor directly.
+        if (import.meta.env.DEV) window.__qwillEditor = editor;
         return () => {
             onEditor?.(null);
             registerLiveContent(null);

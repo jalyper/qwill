@@ -24,9 +24,11 @@ export function createExtensions({ pagination } = {}) {
             link: { openOnClick: false, autolink: true, defaultProtocol: 'https' },
             undoRedo: { depth: 500 },
         }),
+        // Highlight before TextStyleKit: marks nest in registration order, so
+        // a colored span sits inside the highlight and keeps its own color.
+        Highlight.configure({ multicolor: true }),
         TextStyleKit.configure({ lineHeight: false }),
         TextAlign.configure({ types: ['heading', 'paragraph'], alignments: ['left', 'center', 'right', 'justify'] }),
-        Highlight.configure({ multicolor: true }),
         Subscript,
         Superscript,
         Image.configure({

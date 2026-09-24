@@ -98,17 +98,28 @@ pub async fn write_document(request: Request<'_>) -> Result<(), String> {
     write_atomic(&p, bytes)
 }
 
-/// A .docx passed on the command line (double-click / "Open with").
-#[tauri::command]
-pub fn launch_document() -> Option<String> {
-    std::env::args()
+/// The first .docx among command-line arguments (after the program name),
+/// resolved against `cwd` and made absolute.
+pub fn document_arg(args: &[String], cwd: &Path) -> Option<String> {
+    args.iter()
         .skip(1)
         .find(|a| a.to_ascii_lowercase().ends_with(".docx"))
         .map(|a| {
-            fs::canonicalize(&a)
-                .map(|p| p.to_string_lossy().trim_start_matches(r"\\?\").to_string())
-                .unwrap_or(a)
+            let p = cwd.join(a);
+            fs::canonicalize(&p)
+                .unwrap_or(p)
+                .to_string_lossy()
+                .trim_start_matches(r"\\?\")
+                .to_string()
         })
+}
+
+/// A .docx passed on the command line (double-click / "Open with").
+#[tauri::command]
+pub fn launch_document() -> Option<String> {
+    let args: Vec<String> = std::env::args().collect();
+    let cwd = std::env::current_dir().unwrap_or_default();
+    document_arg(&args, &cwd)
 }
 
 #[cfg(test)]
@@ -128,6 +139,16 @@ mod tests {
         let abs = if cfg!(windows) { r"C:\x\a.exe" } else { "/x/a.exe" };
         assert!(document_path(abs).is_err());
         assert!(document_path("relative.docx").is_err());
+    }
+
+    #[test]
+    fn finds_the_document_argument() {
+        let dir = std::env::temp_dir();
+        let args = vec!["qwill.exe".to_string(), "--flag".to_string(), "Notes.DOCX".to_string()];
+        let found = document_arg(&args, &dir).unwrap();
+        assert!(found.ends_with("Notes.DOCX"));
+        assert!(Path::new(&found).is_absolute());
+        assert_eq!(document_arg(&args[..2], &dir), None);
     }
 
     #[test]

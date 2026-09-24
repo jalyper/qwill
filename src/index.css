@@ -130,7 +130,7 @@ input {
   flex-wrap: wrap;
   align-items: center;
   gap: 2px;
-  padding: 4px 8px;
+  padding: 4px 6px;
   background: var(--toolbar-bg);
   border-bottom: 1px solid var(--toolbar-border);
 }
@@ -138,8 +138,8 @@ input {
 .qw-group {
   display: flex;
   align-items: center;
-  gap: 1px;
-  padding: 0 4px;
+  gap: 0;
+  padding: 0 3px;
   border-right: 1px solid var(--toolbar-border);
 }
 
@@ -152,9 +152,9 @@ input {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-width: 28px;
+  min-width: 26px;
   height: 28px;
-  padding: 0 6px;
+  padding: 0 4px;
   border: 1px solid transparent;
   border-radius: 5px;
   background: transparent;
@@ -191,15 +191,15 @@ input {
 }
 
 .qw-select.font {
-  width: 140px;
+  width: 120px;
 }
 
 .qw-select.size {
-  width: 58px;
+  width: 52px;
 }
 
 .qw-select.style {
-  width: 118px;
+  width: 102px;
 }
 
 .qw-color {

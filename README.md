@@ -1,94 +1,75 @@
 # Qwill
 
-**A minimalist desktop word processor built with React 19 + Vite 7 + Tauri 2.**
+**An open-source desktop word processor that edits `.docx` files directly, on real pages, fully offline.**
 
-Qwill opens, edits, and saves `.docx` files natively, exports to PDF, and ships as a ~10 MB cross-platform desktop app instead of a 200 MB Electron bundle. It's fully offline — no telemetry, no account, no network calls. [MIT licensed](LICENSE).
+Built with React 19, [TipTap](https://tiptap.dev) / ProseMirror, and Tauri 2. The goal is a Microsoft Word replacement for everyday writing: open a Word file, edit it on pages that break like Word's, save it back as a Word file.
 
-![Qwill editor screenshot](Qwill.png)
+![Qwill](Qwill.png)
 
-## Features
+## What works
 
-- **Rich text editing** — bold, italic, headings, alignment, color, multiple fonts, font sizes, zoom
-- **Native file I/O** — open/save/save-as through the OS file dialog via Tauri plugins (not a browser file picker)
-- **`.docx` round-trip** — imports Word documents via [`mammoth`](https://www.npmjs.com/package/mammoth), exports via [`docx`](https://www.npmjs.com/package/docx), preserving formatting through edit cycles
-- **PDF export** — browser-side via [`html2pdf.js`](https://www.npmjs.com/package/html2pdf.js)
-- **PDF → DOCX conversion** — handled by a Rust Tauri command using [`pdf-extract`](https://crates.io/crates/pdf-extract) and [`docx-rs`](https://crates.io/crates/docx-rs)
-- **Multi-document sidebar** — switch between documents, with localStorage-backed auto-save
-- **Themes** — Light, Dark, Sepia, Midnight, Forest
-- **Page view with pagination** — content is rebalanced across pages as you type
-- **Fully offline** — no network access required at any point
+**Writing and formatting**
+- Paragraph styles (Normal, Heading 1–4, Quote, Code), fonts and point sizes per selection
+- Bold, italic, underline, strikethrough, superscript, subscript, text color, highlight, clear formatting
+- Alignment (left, center, right, justify), line spacing, space before/after, indent/outdent, hanging indents
+- Bulleted and numbered lists (nested, custom start number)
+- Tables (insert, add/remove rows and columns, merge/split cells, header rows, resizable columns)
+- Pictures (PNG, JPEG, GIF, BMP; resizable), links, horizontal lines, page breaks (Ctrl+Enter)
+- Find and replace (match case, whole words) across the whole document
+- Undo/redo, word count, spell check as you type, zoom
 
-## Tech Stack
+**Pages**
+- One continuous document laid out on pages: text flows onto the next page mid-paragraph the way Word does it; selection, copy, undo and find work across pages
+- Page setup per document: Letter, Legal, A4, A5, or the document's own size; portrait or landscape; margins; page numbers
+- Print / Save as PDF uses the same page breaks you see on screen
 
-| Layer | Tool |
-|-------|------|
-| UI framework | React 19 |
-| Build tool | Vite 7 |
-| Desktop runtime | Tauri 2 (Rust) |
-| Native file dialogs | `@tauri-apps/plugin-dialog` / `plugin-fs` |
-| DOCX I/O | `mammoth` (read), `docx` (write) |
-| PDF export | `html2pdf.js` |
-| PDF → DOCX | `pdf-extract` + `docx-rs` (Rust) |
-| Unit tests | Vitest |
-| E2E tests | Playwright |
-| Icons | `lucide-react` |
+**Files**
+- `.docx` is the file format; there is no hidden internal copy. **Save** writes the file you opened; **Save As** picks a new one
+- Imported documents keep their fonts, sizes, colors, alignment, spacing, indents, lists, tables, pictures, links, page size and margins. Qwill resolves Word's style inheritance and tells you when a document uses something it cannot show yet (see below)
+- Saving is atomic (temp file + rename), so a crash mid-save never corrupts the document
+- Every open document is also autosaved as a draft; after a crash or a closed window, your work is restored on the next launch
+- Tabs for open documents, recent files, a Word-style "Save changes?" prompt when closing
+- Double-click a `.docx` (the installer registers the file type): a running Qwill opens it in a new tab
+- Convert PDF to Word (text only)
 
-See [`PLATFORMS.md`](PLATFORMS.md) for the full architecture diagram, file-by-file key-files map, and migration history from the original Electron version (which brought app size from ~200 MB down to ~10 MB and memory usage from ~250 MB down to ~60 MB).
+## Known limitations
 
-## Running Locally
+These are reported in the app when you open a document that uses them:
+- Header and footer text (page numbers work), footnotes and endnotes, comments
+- Tracked changes are accepted when opening
+- Floating pictures are placed in line with the text; linked pictures and EMF/WMF/SVG pictures are skipped
+- Multiple sections with different page setups (the last section's setup is used)
 
-Qwill is a desktop app. You can run it two ways — most of the time you want the desktop mode.
+Also: tables taller than a page do not split across pages yet, and older `.doc` files are not supported. The desktop app has only been tested on Windows so far; macOS and Linux builds should work but are unverified (printing in particular depends on the platform webview).
 
-**Desktop mode (real Tauri app, recommended):**
+## Running
 
-```bash
-npm install
-npm run tauri:dev
-```
-
-On first run this will also compile the Rust backend, which takes a few minutes. Subsequent runs are fast.
-
-**Web-only dev mode (faster iteration on pure-React changes):**
+Requires Node.js 22+ and, for the desktop app, the [Rust toolchain](https://rustup.rs) plus the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 ```bash
 npm install
-npm run dev
+npm run tauri:dev      # the desktop app (first run compiles the Rust side)
+npm run dev            # browser-only UI development at http://localhost:5173
+npm run tauri:build    # installers in src-tauri/target/release/bundle/
 ```
 
-This launches just the Vite dev server in a browser. Native file dialogs and PDF-to-DOCX won't work in this mode — those require the Tauri runtime — but it's useful for rapid UI tweaking.
-
-## Building for Release
-
-```bash
-npm run tauri:build
-```
-
-Produces platform-specific installers in `src-tauri/target/release/bundle/`:
-
-- **Windows:** NSIS installer (`.exe`) and MSI
-- **macOS:** DMG and `.app` bundle
-- **Linux:** AppImage and `.deb`
+The browser mode is for developing the UI: documents are kept in localStorage, Open uses a file picker, and Save downloads a `.docx`.
 
 ## Testing
 
 ```bash
-npm test                 # Vitest unit tests (48 tests covering DOCX
-                         # round-trip, auto-save, file switching,
-                         # themes, PDF text extraction, localStorage)
-
-npx playwright test      # End-to-end browser tests
+npm test               # unit tests: .docx round trip, pagination layout math
+npm run test:e2e       # Playwright: typing across pages, selection, open/save, find, page setup, ...
+npm run test:rust      # Rust: atomic save, path handling
+npm run check          # lint + unit + build + E2E
 ```
 
-## Prerequisites
+CI runs all of these on every push and pull request (`.github/workflows/ci.yml`).
 
-- **Node.js 20+** (for Vite 7 and Vitest 4)
-- **Rust toolchain** — install via [rustup](https://rustup.rs) for Tauri builds
-- Platform build dependencies as listed in the [Tauri prerequisites guide](https://v2.tauri.app/start/prerequisites/)
+## How it fits together
 
-## Known Issues
-
-- **Cross-page text selection** — selecting text across page boundaries with a mouse drag or `Ctrl+A` is confined to a single page. Each page is a separate `contentEditable` element, so native browser selection doesn't span them. There's an open E2E test case for this in `e2e/cross-page-selection.spec.js`.
+See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).

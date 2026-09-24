@@ -147,8 +147,22 @@
 }
 
 .qw-doc mark {
-  color: inherit;
+  color: #1a1a1a;
   padding: 0;
+}
+
+/* Dark themes: lighten the document's own colors on screen only (like
+   Word's dark mode). The file keeps its real colors, and print is unaffected. */
+@media screen {
+  [data-dark] .qw-doc h1 { color: color-mix(in srgb, var(--h1-color) 45%, #fff); }
+  [data-dark] .qw-doc h2 { color: color-mix(in srgb, var(--h2-color) 45%, #fff); }
+  [data-dark] .qw-doc h3 { color: color-mix(in srgb, var(--h3-color) 45%, #fff); }
+  [data-dark] .qw-doc h4 { color: color-mix(in srgb, var(--h4-color) 45%, #fff); }
+  [data-dark] .qw-doc h5 { color: color-mix(in srgb, var(--h5-color) 45%, #fff); }
+  [data-dark] .qw-doc h6 { color: color-mix(in srgb, var(--h6-color) 45%, #fff); }
+  [data-dark] .qw-doc a { color: #6ea8ff; }
+  /* Highlights stay light, so text on them must stay dark. */
+  [data-dark] .qw-doc mark { color: #1a1a1a !important; }
 }
 
 .qw-doc .qw-page-break {

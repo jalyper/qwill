@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FileText, Plus, X } from 'lucide-react';
 import { useWorkspace } from '../document/useWorkspace';
-import { isTauri, onCloseRequested, setWindowTitle, showError } from '../document/platform';
+import { isTauri, onCloseRequested, onOpenDocumentRequest, setWindowTitle, showError } from '../document/platform';
 import { normalizePageSetup, pageSizeIn } from '../document/pageSetup';
 import { themes } from '../constants/themes';
 import DocumentView from './DocumentView';
@@ -54,7 +54,9 @@ export default function AppShell() {
 
     useEffect(() => {
         const theme = themes.find((t) => t.id === prefs.theme) || themes[0];
-        for (const [k, v] of Object.entries(theme.colors)) document.documentElement.style.setProperty(k, v);
+        const root = document.documentElement;
+        for (const [k, v] of Object.entries(theme.colors)) root.style.setProperty(k, v);
+        root.toggleAttribute('data-dark', !!theme.dark);
     }, [prefs.theme]);
 
     // Load the active document's draft.
@@ -129,6 +131,11 @@ export default function AppShell() {
             if (disposed) fn();
             else unlisten = fn;
         });
+        let unlistenOpen = null;
+        onOpenDocumentRequest((path) => latest.current.ws.openPath(path)).then((fn) => {
+            if (disposed) fn();
+            else unlistenOpen = fn;
+        });
         const onHide = () => {
             if (document.visibilityState === 'hidden') latest.current.ws.flushDrafts();
         };
@@ -136,6 +143,7 @@ export default function AppShell() {
         return () => {
             disposed = true;
             unlisten?.();
+            unlistenOpen?.();
             document.removeEventListener('visibilitychange', onHide);
         };
     }, []);
